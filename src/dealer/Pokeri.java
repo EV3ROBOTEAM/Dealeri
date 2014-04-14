@@ -38,7 +38,6 @@ public class Pokeri implements Behavior{
 
 	@Override
 	public void action() {
-		SeuraavaPelaaja.rotatoijaSpeed(200);
 		SeuraavaPelaaja.kohdalla = false;
 		jaa = false;
 		jaaKortti(korttimaara);

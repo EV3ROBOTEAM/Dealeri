@@ -32,6 +32,8 @@ public class Paaohjelma {
 		Kalibrointi kalib = new Kalibrointi(rotatoija, nappi, cs);
 		kalib.ezkalib();
 		
+		rotatoija.setSpeed(140);
+
 		// haetaan ja tallennetaan sijainnit ja pelaajanro2
 		float[] pelaajaSijainnit = kalib.sijainnit();
 		
@@ -60,4 +62,6 @@ public class Paaohjelma {
 		 */
 
 	}
+
+
 }

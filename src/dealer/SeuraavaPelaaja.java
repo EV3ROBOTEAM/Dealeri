@@ -35,9 +35,6 @@ public class SeuraavaPelaaja implements Behavior {
 		kompassi = c.getCompassMode();
 	}
 	
-	public static void rotatoijaSpeed(int nopeus){
-		rotatoija.setSpeed(nopeus);
-	}
 
 	@Override
 	public boolean takeControl() {
@@ -48,11 +45,11 @@ public class SeuraavaPelaaja implements Behavior {
 	public void action() {
 		System.out.println("ETSITAAN SEURAAVA PELAAJA");
 		
-		alaraja = Sijainnit[pelaaja] - 7;
+		alaraja = Sijainnit[pelaaja] - 4;
 		if (alaraja <= 0) 
 			alaraja = 1;
 		
-		ylaraja = Sijainnit[pelaaja] + 7;
+		ylaraja = Sijainnit[pelaaja] + 4;
 		
 		// katsotaan kumpaan suuntaan kannattaa lähteä liikkumaan
 		kompassi.fetchSample(kompassinArvo, 0);
