@@ -9,7 +9,7 @@ public class SeuraavaPelaaja implements Behavior {
 	// suppressed flagi
 	private volatile boolean suppressed = false;
 	// moottorit
-	private EV3LargeRegulatedMotor rotatoija;
+	private static EV3LargeRegulatedMotor rotatoija;
 	public static int pelaajamaara;
 	public static boolean jaettu = false;
 
@@ -33,6 +33,10 @@ public class SeuraavaPelaaja implements Behavior {
 		Sijainnit = pelaajaSijainnit;
 		// kompassi
 		kompassi = c.getCompassMode();
+	}
+	
+	public static void rotatoijaSpeed(int nopeus){
+		rotatoija.setSpeed(nopeus);
 	}
 
 	@Override

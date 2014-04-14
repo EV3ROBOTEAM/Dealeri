@@ -29,6 +29,7 @@ public class Pokeri implements Behavior{
 		// jos alkukortit on jaettu, t‰nne p‰‰see ainoastaan 
 		// pelaajanValinta-luokasta
 		if (alkukortitJaettu) {
+			
 			return jaa;
 		} else {
 			return SeuraavaPelaaja.kohdalla;
@@ -37,6 +38,7 @@ public class Pokeri implements Behavior{
 
 	@Override
 	public void action() {
+		SeuraavaPelaaja.rotatoijaSpeed(200);
 		SeuraavaPelaaja.kohdalla = false;
 		jaa = false;
 		jaaKortti(korttimaara);
