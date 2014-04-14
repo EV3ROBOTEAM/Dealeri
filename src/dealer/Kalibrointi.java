@@ -59,7 +59,7 @@ public class Kalibrointi {
 			
 			// kun nappia painetaan, tallennetaan sijainti taulukkoon
 			if (napinArvo[0] == 1.0) {
-				kompassi.fetchSample(kompassinArvo, 0);
+				//kompassi.fetchSample(kompassinArvo, 0);
 				pelaajaSijainnit[pelaajanro] = kompassinArvo[0];
 				try {
 					Thread.sleep(120);
