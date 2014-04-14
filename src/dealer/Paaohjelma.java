@@ -1,6 +1,10 @@
 package dealer;
 
 
+import lejos.hardware.Button;
+import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.lcd.Font;
+import lejos.hardware.lcd.GraphicsLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.port.MotorPort;
@@ -9,9 +13,20 @@ import lejos.hardware.sensor.EV3TouchSensor;
 import lejos.hardware.sensor.HiTechnicCompass;
 import lejos.robotics.subsumption.Arbitrator;
 import lejos.robotics.subsumption.Behavior;
+import lejos.utility.TextMenu;
 
 public class Paaohjelma {
+	
 	public static void main(String[] args) {
+		// Valikon muuttujat jne.
+		String[] pelit = { "Pokeri", "Paskahousu", "Swagger" };
+		TextMenu menu = new TextMenu(pelit, 1, "Pelit:");
+		GraphicsLCD g = LocalEV3.get().getGraphicsLCD();
+		final int SW = g.getWidth();
+		final int SH = g.getHeight();
+		final int DELAY = 1000;
+		
+		
 		
 		// moottorien konstruktorit
 		EV3LargeRegulatedMotor rotatoija = new EV3LargeRegulatedMotor(MotorPort.A);
@@ -28,6 +43,28 @@ public class Paaohjelma {
 		jakaja.setSpeed(720);
 		heittaja.setSpeed(720);
 
+		// Valitaan peli
+		g.clear();
+		g.refresh();
+		g.setFont(Font.getLargeFont());
+
+		g.drawString("Valitse", SW / 2, SH / 2, GraphicsLCD.BASELINE
+				| GraphicsLCD.HCENTER);
+		Button.waitForAnyPress(DELAY);
+		g.clear();
+		g.refresh();
+		g.drawString("Peli", SW / 2, SH / 2, GraphicsLCD.BASELINE
+				| GraphicsLCD.HCENTER);
+		g.refresh();
+		Button.waitForAnyPress(DELAY);
+		g.clear();
+
+		int peli = menu.select();
+		/* TODO Switch-case mink‰ mukaan tehd‰‰n tietynlainen arbitraattori
+		 * 
+		 */
+
+		
 		// pelaajien sijainnit ja kalibrointi, konstruktoriin moottor ja sensorit
 		Kalibrointi kalib = new Kalibrointi(rotatoija, nappi, cs);
 		kalib.ezkalib();
@@ -40,12 +77,26 @@ public class Paaohjelma {
 		Behavior pokeri = new Pokeri(heittaja, jakaja);
 		Behavior valinta = new PelaajanValinta(nappi);
 		Behavior holdem = new TexasHoldem(heittaja, jakaja);
+		Behavior kaikki = new JaetaanKaikki(heittaja, jakaja);
+		Arbitrator arby = null;
 
-		
+		switch (peli)
+		{
+		case 0: 
+			Behavior [] poker = {pelaajat, pokeri, valinta};
+			
+			arby = new Arbitrator(poker);
+			break;
+			
+		case 1:
+			Behavior [] jaaKaikki = {pelaajat, kaikki};
+			
+			arby = new Arbitrator(jaaKaikki);
+			break;
+			
+		}
 		// arbitraattori ja k‰ynnistys
-		Behavior [] kaytos = {pelaajat, pokeri, valinta};
-		
-		Arbitrator arby = new Arbitrator(kaytos);
+
 		arby.start();
 
 		// nayton valinta hommasta return int joka menee jako- ja
