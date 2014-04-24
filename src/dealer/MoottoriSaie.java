@@ -1,16 +1,26 @@
 package dealer;
 
+import java.rmi.RemoteException;
+
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.remote.ev3.RMIRegulatedMotor;
+import lejos.remote.ev3.RMIRemoteRegulatedMotor;
 
 public class MoottoriSaie extends Thread{
-	private EV3LargeRegulatedMotor rotatoija;
+	private RMIRegulatedMotor rotatoija;
 	
-	public MoottoriSaie (EV3LargeRegulatedMotor r) {
-		rotatoija = r;
+	public MoottoriSaie (RMIRegulatedMotor rotatoija2) {
+		rotatoija = rotatoija2;
 	}
 	
 	public void run() {
-		rotatoija.rotate(600);
+		try {
+			rotatoija.rotate(600);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 }

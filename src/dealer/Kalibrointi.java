@@ -1,17 +1,21 @@
 package dealer;
 
+import java.rmi.RemoteException;
+
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.sensor.EV3TouchSensor;
 import lejos.hardware.sensor.HiTechnicCompass;
+import lejos.remote.ev3.RMIRegulatedMotor;
+import lejos.remote.ev3.RMIRemoteRegulatedMotor;
 import lejos.robotics.SampleProvider;
 
 // ei ole Behavior, kalibroidaan vaan ja otetaan pelaajasijainnit talteen
 public class Kalibrointi {
 	// moottorit
-	private EV3LargeRegulatedMotor rotatoija;
-	private EV3LargeRegulatedMotor jakaja;
-	private EV3MediumRegulatedMotor heittaja;
+	private RMIRegulatedMotor rotatoija;
+	private RMIRegulatedMotor jakaja;
+	private RMIRegulatedMotor heittaja;
 	private MoottoriSaie saie;
 	// sensorit
 	private SampleProvider painallus;
@@ -29,11 +33,20 @@ public class Kalibrointi {
 	public float[] sijainnit() {
 		return pelaajaSijainnit;
 	}
-
+	
+	public int getPelaajamaara() {
+		return this.pelaajanro;
+	}
+	
+	public void nollaaMuuttujat() {
+		this.pelaajanro = 0;
+		
+	}
+	
 	// kalibroinnin konstruktori
-	public Kalibrointi(EV3LargeRegulatedMotor r, EV3TouchSensor n, HiTechnicCompass c) {
+	public Kalibrointi(RMIRegulatedMotor rotatoija2, EV3TouchSensor n, HiTechnicCompass c) {
 		// moottorit
-		rotatoija = r;
+		rotatoija = rotatoija2;
 
 		// sensorit
 		painallus = n.getTouchMode();
@@ -43,14 +56,20 @@ public class Kalibrointi {
 		pelaajaSijainnit = new float[20];
 		
 		//s‰ie
-		saie = new MoottoriSaie(r);
 
 	}
 
 	public void ezkalib() {
+		saie = new MoottoriSaie(this.rotatoija);
+
 		System.out.println("ROTATETAAN");
 		// otetaan ensimm‰isen pelaajan piste, jonka j‰lkeen pyˆrit‰‰n 420-astetta
-		rotatoija.forward();
+		try {
+			rotatoija.forward();
+		} catch (RemoteException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
 		while (napinArvo[0] == 0) {
 			painallus.fetchSample(napinArvo, 0);
 			kompassi.fetchSample(kompassinArvo, 0);
@@ -62,8 +81,14 @@ public class Kalibrointi {
 		pelaajanro++;
 		System.out.println("Pelaajanro = " + pelaajanro
 				+ ", sijainti = " + pelaajaSijainnit[pelaajanro-1]);
-		
+		try {
+			rotatoija.stop(true);
+		} catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		saie.start(); // k‰ynnistet‰‰n moottoris‰ie, jossa kierret‰‰n moottoria 420 astetta
+
 		while (saie.isAlive()) {
 			// haetaan kompassin arvoja, koska kompassista ei saa tarkkoja 
 			// arvoja ellei sill‰ ole skannattu jo muutamaa
@@ -76,7 +101,7 @@ public class Kalibrointi {
 				//kompassi.fetchSample(kompassinArvo, 0);
 				pelaajaSijainnit[pelaajanro] = kompassinArvo[0];
 				try {
-					Thread.sleep(120);
+					Thread.sleep(250);
 				} catch (InterruptedException e) {}
 				pelaajanro++;
 				System.out.println("Pelaajanro = " + pelaajanro
@@ -86,5 +111,8 @@ public class Kalibrointi {
 		// l‰hetet‰‰n pelaajien m‰‰r‰
 		SeuraavaPelaaja.pelaajamaara = pelaajanro;
 		Pokeri.pelaajamaara = pelaajanro;
+		JaetaanKaikki.pelaajamaara = pelaajanro;
+		PelaajanValinta.pelaajamaara = pelaajanro;
+		TexasHoldem.pelaajamaara = pelaajanro;
 	}
 }

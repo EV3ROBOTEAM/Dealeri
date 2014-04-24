@@ -1,7 +1,13 @@
 package dealer;
 
+import java.rmi.RemoteException;
+
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
+import lejos.hardware.sensor.EV3TouchSensor;
+import lejos.remote.ev3.RMIRegulatedMotor;
+import lejos.remote.ev3.RMIRemoteRegulatedMotor;
+import lejos.robotics.SampleProvider;
 import lejos.robotics.subsumption.Behavior;
 
 //Holdem s‰‰nnˆt:
@@ -19,39 +25,160 @@ import lejos.robotics.subsumption.Behavior;
  */
 public class TexasHoldem implements Behavior {
 	// moottorit
-	private EV3LargeRegulatedMotor jakaja;
-	private EV3MediumRegulatedMotor heittaja;
-	
+	private RMIRegulatedMotor jakaja;
+	private RMIRegulatedMotor heittaja;
+	public static int pelaajamaara;
+	int[] jaettu = new int[pelaajamaara];
+	public static boolean alkukortitJaettu;
+	public static boolean jaettuHoldem = false;
+
+	int jakolkm = 1;
+	int z = 0;
+	int tarkastus = 0;
+	SampleProvider painallus;
+	private long click, click2, painalluksenPituus;
+	float[] n‰yte = new float[1];
+	// supressed flagi
+	private volatile boolean suppressed = false;
 	// konstruktori	
-	public TexasHoldem(EV3MediumRegulatedMotor h, EV3LargeRegulatedMotor j) {
-		heittaja = h;
-		jakaja = j;
+	public TexasHoldem(RMIRegulatedMotor heittaja2, RMIRegulatedMotor jakaja2, EV3TouchSensor nappi) {
+		heittaja = heittaja2;
+		jakaja = jakaja2;
+		this.painallus = nappi.getTouchMode();
 	}
 
 	@Override
 	public boolean takeControl() {
-		// TODO Auto-generated method stub
-		return false;
+		// jos alkukortit on jaettu, t‰nne p‰‰see ainoastaan 
+		// pelaajanValinta-luokasta
+		return SeuraavaPelaaja.kohdalla;
 	}
 
 	@Override
 	public void action() {
-		// TODO Auto-generated method stub
+		suppressed = false;
+		SeuraavaPelaaja.kohdalla = false;
+		System.out.println("action hem");
+		
+		if(!jaettuHoldem && !suppressed && jakolkm <= (2*pelaajamaara)){
+			System.out.println("jaetaan yhdelle pelaajalle 1 kortti...");
+			jaaKortti(1);
+
+			jakolkm++;
+			suppress();
+		}
+		
+		jaettuHoldem = true;
+		System.out.println("JAETTUHOLDEM ======= TRUE   BLOW IT OUT URE ASS!!!");
+		System.out.println("Jaettu kaikille");
+		System.out.println("Panostus");
+		odotaPanostusta();
+		//poltetaan
+		
+		System.out.println("POLTETAAN");
+		jaaKortti(1);
+		
+		
+		//jaetaan 3 pˆyd‰lle
+		System.out.println("Jaetaan 3 pˆyd‰lle");
+		jaaKortti(3);
+		System.out.println("Panostus");
+		odotaPanostusta();
+		
+		
+		//poltetaan
+		System.out.println("POLTETAAN");
+		jaaKortti(1);
+
+		//jako
+		System.out.println("Jaetaan 1 pˆyd‰lle");
+		jaaKortti(1);
+		System.out.println("Panostus");
+		odotaPanostusta();
+		System.out.println("POLTETAAN");
+
+		//poltetaan
+		System.out.println("POLTETAAN");
+		jaaKortti(1);
+		//jako
+		System.out.println("Jaetaan 1 pˆyd‰lle");
+		jaaKortti(1);
+		
+		suppress();
 		
 	}
 
 	@Override
 	public void suppress() {
-		// TODO Auto-generated method stub
-		
+		System.out.println("holdem suppress");
+		suppressed = true;
 	}
 	
 	public void jaaKortti(int maara) {
 		for (int i = 0; i < maara; i++) {
-			heittaja.backward();
-			jakaja.rotate(-300);
-			heittaja.stop();
-			jakaja.rotate(200);
+			try {
+				heittaja.backward();
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				jakaja.rotate(-300);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				heittaja.stop(true);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				jakaja.rotate(200);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void tarkastus() {
+		jaettu[z] += 1;
+		// katsotaan ollaanko viimeisess‰ pelaajassa
+		if (z+1 >= pelaajamaara) {
+			z = 0;
+			System.out.println("NOLLATTU");
+		} else {
+			// jos ei, siirryt‰‰n seuraavaan pelaajaan
+			z++;
+		}
+		
+		// tarkastetaan onko kaikille jaettu 5 korttia
+		for (int g = 0; g < jaettu.length; g++) {
+			if (jaettu[g] == 2){
+				tarkastus++;
+			}
+		}
+				
+		// jos on fl‰g‰t‰‰n lis‰kortit
+		if (tarkastus == jaettu.length) {
+			SeuraavaPelaaja.kohdalla = true;
+			alkukortitJaettu = true;
+		} else {
+			tarkastus = 0;
+		}
+	}
+		
+	public void odotaPanostusta(){
+		n‰yte[0] = 0;
+		while(true){
+			while (n‰yte[0] == 0) {
+			painallus.fetchSample(n‰yte, 0);
+			}
+			break;
 		}
 	}
 }
+
+

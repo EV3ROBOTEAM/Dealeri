@@ -1,16 +1,22 @@
 package dealer;
 
+import java.rmi.RemoteException;
+
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.port.MotorPort;
+import lejos.remote.ev3.RMIRegulatedMotor;
+import lejos.remote.ev3.RMIRemoteRegulatedMotor;
 import lejos.robotics.subsumption.Behavior;
 
 public class Pokeri implements Behavior{
 	// moottorit
-	private EV3LargeRegulatedMotor jakaja;
-	private EV3MediumRegulatedMotor heittaja;
+	private RMIRegulatedMotor jakaja;
+	private RMIRegulatedMotor heittaja;
 	public static int pelaajamaara;
+	private int i = 0, x;
 	int[] jaettu = new int[pelaajamaara];
+	int[] lopetus = new int[pelaajamaara];
 	public static boolean alkukortitJaettu;
 	public static boolean jaa;
 	public static int korttimaara = 1;
@@ -19,9 +25,9 @@ public class Pokeri implements Behavior{
 	// supressed flagi
 	private volatile boolean suppressed = false;
 		
-	public Pokeri(EV3MediumRegulatedMotor h, EV3LargeRegulatedMotor j) {
-		heittaja = h;
-		jakaja = j;
+	public Pokeri(RMIRegulatedMotor heittaja2, RMIRegulatedMotor jakaja2) {
+		heittaja = heittaja2;
+		jakaja = jakaja2;
 	}
 
 	@Override
@@ -29,7 +35,6 @@ public class Pokeri implements Behavior{
 		// jos alkukortit on jaettu, t‰nne p‰‰see ainoastaan 
 		// pelaajanValinta-luokasta
 		if (alkukortitJaettu) {
-			
 			return jaa;
 		} else {
 			return SeuraavaPelaaja.kohdalla;
@@ -54,11 +59,51 @@ public class Pokeri implements Behavior{
 
 	public void jaaKortti(int maara) {
 		for (int i = 0; i < maara; i++) {
-			heittaja.backward();
-			jakaja.rotate(-300);
-			heittaja.stop();
-			jakaja.rotate(200);
+			try {
+				heittaja.backward();
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				jakaja.rotate(-300);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				heittaja.stop(true);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				jakaja.rotate(200);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
+		
+		/*if (alkukortitJaettu) {
+			System.out.println("jaetaan pelaajalle: " + i);
+			lopetus[i] += 1;
+			for (int g = 0; g < lopetus.length; g++) {
+				if (lopetus[g] == 0){
+					x++;
+				}
+			}
+			System.out.println(x + ", pelaajalle jaettu lis‰kortit");
+			if (x == lopetus.length) {
+				System.out.println("Kortit jaettu");
+				SeuraavaPelaaja.kohdalla = false;
+				alkukortitJaettu = false;
+				SeuraavaPelaaja.peliss‰ = false;
+			}
+			x = 0;
+			i++;
+		}*/
+		
 		korttimaara = 1;
 	}
 	public void tarkastus() {
@@ -86,6 +131,6 @@ public class Pokeri implements Behavior{
 		} else {
 			tarkastus = 0;
 		}
+		
 	}
-	
 }

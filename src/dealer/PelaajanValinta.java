@@ -7,10 +7,11 @@ import lejos.robotics.subsumption.Behavior;
 public class PelaajanValinta implements Behavior {
 
 	private volatile boolean suppressed = false;
+	public static int pelaajamaara;
 	SampleProvider painallus;
 	private long click, click2, painalluksenPituus;
 	float[] näyte = new float[1];
-	private int korttienLkm;
+	private int korttienLkm, vuoro = 0;
 	public PelaajanValinta(EV3TouchSensor nappi) {
 		this.painallus = nappi.getTouchMode();
 	}
@@ -43,24 +44,36 @@ public class PelaajanValinta implements Behavior {
 			}
 			click2 = System.currentTimeMillis();
 			painalluksenPituus = click2 - click;
-			System.out.println("painalluksenPituus: " + painalluksenPituus);
+			//System.out.println("painalluksenPituus: " + painalluksenPituus);
 
 			try {
 				Thread.sleep(50);
 			} catch (Exception e) {}
-			// jos painalluksen pituus on yli 250, se lasketaan kortiksi
+			
+			
+			// jos painalluksen pituus on alle 250, se lasketaan kortiksi
 			// jos yli, passataan
 			if (painalluksenPituus < 250) {
 				korttienLkm++;
 				Pokeri.jaa = true;
 				Pokeri.korttimaara = korttienLkm;
-				System.out.println("KORTTIEN MAARA: " + Pokeri.korttimaara);
+				//System.out.println("KORTTIEN MAARA: " + Pokeri.korttimaara);
 				if (Pokeri.korttimaara >= 4) {
+					vuoro++;
+					System.out.println("Vuoro jaettu: " + vuoro);
 					break;
 				}
 			} else {
+				vuoro++;
+				System.out.println("Vuoro jaettu: " + vuoro);
 				break;
 			}
+		}
+		if (vuoro == pelaajamaara) {
+			System.out.println("Kortit jaettu");
+			SeuraavaPelaaja.kohdalla = false;
+			Pokeri.alkukortitJaettu = false;
+			SeuraavaPelaaja.pelissä = false;
 		}
 		suppress();
 	}

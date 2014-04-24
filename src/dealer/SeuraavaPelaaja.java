@@ -1,7 +1,11 @@
 package dealer;
 
+import java.rmi.RemoteException;
+
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.sensor.HiTechnicCompass;
+import lejos.remote.ev3.RMIRegulatedMotor;
+import lejos.remote.ev3.RMIRemoteRegulatedMotor;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.subsumption.Behavior;
 
@@ -9,7 +13,7 @@ public class SeuraavaPelaaja implements Behavior {
 	// suppressed flagi
 	private volatile boolean suppressed = false;
 	// moottorit
-	private static EV3LargeRegulatedMotor rotatoija;
+	private static RMIRegulatedMotor rotatoija;
 	public static int pelaajamaara;
 	public static boolean jaettu = false;
 
@@ -22,13 +26,14 @@ public class SeuraavaPelaaja implements Behavior {
 	private int pelaaja = 0;
 	private float[] kompassinArvo = new float[1];
 	static boolean kohdalla = false;
+	static boolean peliss‰ = true;
 	float alaraja;
 	float ylaraja;
 	float suunta;
 
-	public SeuraavaPelaaja(float pelaajaSijainnit[], EV3LargeRegulatedMotor r, HiTechnicCompass c) {
+	public SeuraavaPelaaja(float pelaajaSijainnit[], RMIRegulatedMotor rotatoija2, HiTechnicCompass c) {
 		// moottori
-		rotatoija = r;
+		rotatoija = rotatoija2;
 		// sijainnit kalibroinnista
 		Sijainnit = pelaajaSijainnit;
 		// kompassi
@@ -38,44 +43,68 @@ public class SeuraavaPelaaja implements Behavior {
 
 	@Override
 	public boolean takeControl() {
-		return true;
+		return peliss‰;
 	}
 
 	@Override
 	public void action() {
-		System.out.println("ETSITAAN SEURAAVA PELAAJA");
 		
-		alaraja = Sijainnit[pelaaja] - 4;
+		alaraja = (Sijainnit[pelaaja] - 6);
 		if (alaraja <= 0) 
 			alaraja = 1;
 		
-		ylaraja = Sijainnit[pelaaja] + 4;
+		ylaraja = (Sijainnit[pelaaja] + 6);
 		
 		// katsotaan kumpaan suuntaan kannattaa l‰hte‰ liikkumaan
 		kompassi.fetchSample(kompassinArvo, 0);
 		suunta = kompassinArvo[0];
 
 		if ((Sijainnit[pelaaja] - suunta + 360) % 360 < 180) {
-			  rotatoija.forward();
+			  try {
+				rotatoija.forward();
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				
+				e.printStackTrace();
+			}
 		}	else	{
-			  rotatoija.backward();
+			  try {
+				rotatoija.backward();
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
+		System.out.println("ETSITƒƒN: " + Sijainnit[pelaaja]);
+		
 		// etsit‰‰n kompassin arvoa alarajan ja yl‰rajan v‰list‰
-		while (!(kompassinArvo[0] > alaraja && kompassinArvo[0] < ylaraja))
+		while (!(kompassinArvo[0] > alaraja && kompassinArvo[0] < ylaraja)) {
 			kompassi.fetchSample(kompassinArvo, 0);
+			System.out.println(kompassinArvo[0]);
+		}
 		
 		kohdalla = true;
+		
+		try {
+			rotatoija.stop(true);
+			System.out.println("STOPATTU");
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-		rotatoija.stop();
-		System.out.println("STOPATTU");
+		
+		
 		
 		// jos ollaan k‰yty kaikki pelaajat l‰pi, aloitetaan uudestaan ensimm‰isest‰
 		if (pelaaja+1 >= pelaajamaara) {
 			pelaaja = 0;
 			System.out.println("NOLLATTU");
+			
 		} else {
 			// tai siirryt‰‰n seuraavaan pelaajaan
+			System.out.println("pelaaja " + pelaaja);
 			pelaaja++;
 		}
 		suppress();
@@ -83,6 +112,7 @@ public class SeuraavaPelaaja implements Behavior {
 
 	@Override
 	public void suppress() {
+	//	System.out.println("spelaaja supprrress");
 		suppressed = true;
 	}
 
