@@ -27,12 +27,13 @@ public class TexasHoldem implements Behavior {
 	// moottorit
 	private RMIRegulatedMotor jakaja;
 	private RMIRegulatedMotor heittaja;
-	public static int pelaajamaara;
+	private RMIRegulatedMotor rotatoija;
+	private int pelaajamaara;
 	int[] jaettu = new int[pelaajamaara];
 	public static boolean alkukortitJaettu;
 	public static boolean jaettuHoldem = false;
 
-	int jakolkm = 1;
+	int jakolkm = 0;
 	int z = 0;
 	int tarkastus = 0;
 	SampleProvider painallus;
@@ -40,80 +41,132 @@ public class TexasHoldem implements Behavior {
 	float[] n‰yte = new float[1];
 	// supressed flagi
 	private volatile boolean suppressed = false;
-	// konstruktori	
-	public TexasHoldem(RMIRegulatedMotor heittaja2, RMIRegulatedMotor jakaja2, EV3TouchSensor nappi) {
+
+	// konstruktori
+	public TexasHoldem(RMIRegulatedMotor rotatoija2,
+			RMIRegulatedMotor heittaja2, RMIRegulatedMotor jakaja2, EV3TouchSensor nappi, Kalibrointi kalib) {
+		rotatoija = rotatoija2;
 		heittaja = heittaja2;
 		jakaja = jakaja2;
 		this.painallus = nappi.getTouchMode();
+		pelaajamaara = kalib.getPelaajamaara();
 	}
 
 	@Override
 	public boolean takeControl() {
-		// jos alkukortit on jaettu, t‰nne p‰‰see ainoastaan 
+		// jos alkukortit on jaettu, t‰nne p‰‰see ainoastaan
 		// pelaajanValinta-luokasta
 		return SeuraavaPelaaja.kohdalla;
 	}
 
 	@Override
 	public void action() {
-		suppressed = false;
+
 		SeuraavaPelaaja.kohdalla = false;
 		System.out.println("action hem");
-		
-		if(!jaettuHoldem && !suppressed && jakolkm <= (2*pelaajamaara)){
+
+		// jaetaan kaikille pelaajille kaksi(2) korttia
+		if (jakolkm <= (2 * pelaajamaara)) {
 			System.out.println("jaetaan yhdelle pelaajalle 1 kortti...");
 			jaaKortti(1);
-
 			jakolkm++;
-			suppress();
 		}
-		
-		jaettuHoldem = true;
-		System.out.println("JAETTUHOLDEM ======= TRUE   BLOW IT OUT URE ASS!!!");
-		System.out.println("Jaettu kaikille");
-		System.out.println("Panostus");
-		odotaPanostusta();
-		//poltetaan
-		
-		System.out.println("POLTETAAN");
-		jaaKortti(1);
-		
-		
-		//jaetaan 3 pˆyd‰lle
-		System.out.println("Jaetaan 3 pˆyd‰lle");
-		jaaKortti(3);
-		System.out.println("Panostus");
-		odotaPanostusta();
-		
-		
-		//poltetaan
-		System.out.println("POLTETAAN");
-		jaaKortti(1);
+		System.out.println("PELAAJAMAARA = " + pelaajamaara);
+		System.out.println("jakolkm = " + jakolkm);
 
-		//jako
-		System.out.println("Jaetaan 1 pˆyd‰lle");
-		jaaKortti(1);
-		System.out.println("Panostus");
-		odotaPanostusta();
-		System.out.println("POLTETAAN");
+		// jos jaettu kaikille 2 korttia, siirryt‰‰n lineaariseen lategameen
+		// rotate aina polttomestaan ja rotate takaisin :--)
+		// kommentti
+		// kun panostus tehty, joku pelaaja painaa nappia
+		//ja homma svengaa ku hirvi
+		if (jakolkm == (2 * pelaajamaara)) {
+			// rotatoijaan lis‰‰ nopeutta koska ei tarvitse etsi‰ pelaajia
+			try {
+				rotatoija.setSpeed(150);
+			} catch (RemoteException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			System.out.println("Jaettu kaikille");
+			System.out.println("Panostus");
+			odotaPanostusta();
 
-		//poltetaan
-		System.out.println("POLTETAAN");
-		jaaKortti(1);
-		//jako
-		System.out.println("Jaetaan 1 pˆyd‰lle");
-		jaaKortti(1);
-		
+			// poltetaan
+			try {
+				rotatoija.rotate(100);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("POLTETAAN");
+			jaaKortti(1);
+
+			// jaetaan 3 pˆyd‰lle
+			try {
+				rotatoija.rotate(-100);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("Jaetaan 3 pˆyd‰lle");
+			jaaKortti(3);
+			System.out.println("Panostus");
+			odotaPanostusta();
+
+			// poltetaan
+			try {
+				rotatoija.rotate(100);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("POLTETAAN");
+			jaaKortti(1);
+
+			// jako
+			try {
+				rotatoija.rotate(-100);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("Jaetaan 1 pˆyd‰lle");
+			jaaKortti(1);
+			System.out.println("Panostus");
+			odotaPanostusta();
+			System.out.println("POLTETAAN");
+
+			// poltetaan
+			try {
+				rotatoija.rotate(100);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("POLTETAAN");
+			jaaKortti(1);
+			// jako
+			try {
+				rotatoija.rotate(-100);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println("Jaetaan 1 pˆyd‰lle");
+			jaaKortti(1);
+
+			SeuraavaPelaaja.kohdalla = false;
+			SeuraavaPelaaja.peliss‰ = false;
+		}
+
 		suppress();
-		
 	}
 
 	@Override
 	public void suppress() {
-		System.out.println("holdem suppress");
 		suppressed = true;
 	}
-	
+
 	public void jaaKortti(int maara) {
 		for (int i = 0; i < maara; i++) {
 			try {
@@ -142,43 +195,14 @@ public class TexasHoldem implements Behavior {
 			}
 		}
 	}
-	
-	public void tarkastus() {
-		jaettu[z] += 1;
-		// katsotaan ollaanko viimeisess‰ pelaajassa
-		if (z+1 >= pelaajamaara) {
-			z = 0;
-			System.out.println("NOLLATTU");
-		} else {
-			// jos ei, siirryt‰‰n seuraavaan pelaajaan
-			z++;
-		}
-		
-		// tarkastetaan onko kaikille jaettu 5 korttia
-		for (int g = 0; g < jaettu.length; g++) {
-			if (jaettu[g] == 2){
-				tarkastus++;
-			}
-		}
-				
-		// jos on fl‰g‰t‰‰n lis‰kortit
-		if (tarkastus == jaettu.length) {
-			SeuraavaPelaaja.kohdalla = true;
-			alkukortitJaettu = true;
-		} else {
-			tarkastus = 0;
-		}
-	}
-		
-	public void odotaPanostusta(){
+
+	public void odotaPanostusta() {
 		n‰yte[0] = 0;
-		while(true){
+		while (true) {
 			while (n‰yte[0] == 0) {
-			painallus.fetchSample(n‰yte, 0);
+				painallus.fetchSample(n‰yte, 0);
 			}
 			break;
 		}
 	}
 }
-
-

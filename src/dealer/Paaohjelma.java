@@ -25,7 +25,9 @@ import lejos.robotics.subsumption.Behavior;
 import lejos.utility.TextMenu;
 
 public class Paaohjelma extends RemoteEV3 {
-	
+
+	static Arbitrator arby;
+	static RemoteEV3 yhteys;
 	static EV3TouchSensor nappi;
 	static HiTechnicCompass cs;
 	static RMIRegulatedMotor rotatoija;
@@ -37,7 +39,8 @@ public class Paaohjelma extends RemoteEV3 {
 	static Behavior holdem;
 	static Behavior kaikki;
 	static Kalibrointi kalib;
-	
+	static boolean loopz = false;
+
 	public Paaohjelma(String host) throws RemoteException,
 			MalformedURLException, NotBoundException {
 		super(host);
@@ -53,56 +56,61 @@ public class Paaohjelma extends RemoteEV3 {
 	public static void main(String[] args) throws RemoteException,
 			MalformedURLException, NotBoundException {
 
-		
-		RemoteEV3 yhteys = null;
-
 		// REKTYHTEYS
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e1) {}
-		try {
-			BrickInfo[] bricks = BrickFinder.discover();
-			for (BrickInfo info : bricks) {
-				System.out.println("Ev3 found on Bluetooth ip: "
-						+ info.getIPAddress());
+		/*for (int i = 0; i < 10; i++) {
+			System.out.println("yhteyskok: "+i);
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e1) {
+			}
+			try {
+				BrickInfo[] bricks = BrickFinder.discover();
+				for (BrickInfo info : bricks) {
+					System.out.println("Ev3 found on Bluetooth ip: "
+							+ info.getIPAddress());
+				}
+
+				yhteys = new RemoteEV3(bricks[0].getIPAddress());
+
+			} catch (Exception e) {
+				System.out.println("ythteyttä ei löydetty");
+				lopeta();
+				e.printStackTrace();
 			}
 
-			yhteys = new RemoteEV3(bricks[0].getIPAddress());
-
-		} catch (Exception e) {
-			lopeta();
-			e.printStackTrace();
-		}
-
+		}*/
+		yhteys = new RemoteEV3("10.0.1.1");
+		
+		System.out.println(yhteys.getName());
+		
 		yhteys.setDefault();
-		
-		
+		// sensorien konstruktorit ja sampleprovierit
+		nappi = new EV3TouchSensor(SensorPort.S1);
+		cs = new HiTechnicCompass(SensorPort.S3);
+
 		rotatoija = yhteys.createRegulatedMotor("A", 'L');
 		jakaja = yhteys.createRegulatedMotor("B", 'L');
 		heittaja = yhteys.createRegulatedMotor("C", 'M');
 
-
 		boolean returnWhenInactive = true;
 
-		// sensorien konstruktorit ja sampleprovierit
-		nappi = new EV3TouchSensor(SensorPort.S1);
-		cs = new HiTechnicCompass(SensorPort.S3);
+
 
 		// moottorien nopeudet
 		rotatoija.setSpeed(100);
 		jakaja.setSpeed(720);
 		heittaja.setSpeed(720);
 
-
-		Arbitrator arby = null;
 		int peli = 0;
 		DiileriView view = new DiileriView();
 		while (!view.getvoiAloittaa()) {
 			peli = view.getValinta();
-			System.out.println("loops");
 		}
-		
+		System.out.println("PELI VALITTU");
+		view.setvoiAloittaa();
+
 		kalib = new Kalibrointi(rotatoija, nappi, cs);
+		view.KalibrointiValikko();
 		kalib.ezkalib();
 
 		// haetaan ja tallennetaan sijainnit ja pelaajanro2
@@ -112,91 +120,115 @@ public class Paaohjelma extends RemoteEV3 {
 
 		boolean end;
 		boolean uusiPeli = false;
+		
 		do {
 
 			// jos uusiPeli on valittu trueksi
 			// aloitetaan uudestaan kalibroimalla
 			if (uusiPeli) {
-				kalib.ezkalib();
+				System.out.println("uudessaPelissä");
+				view.Paavalikko();
+				while (!view.getvoiAloittaa()) {
+					peli = view.getValinta();
+				}
+				if (peli != 4) {
+					kalib.ezkalib();
+				}
+				view.setvoiAloittaa();
 			}
+
+			uusiPeli = false;
 			// tehdään uudet behaviorit uusilla kalibroinnin arvoilla
-			pelaajat = new SeuraavaPelaaja(pelaajaSijainnit, rotatoija, cs, kalib);
+			
+			pelaajat = new SeuraavaPelaaja(pelaajaSijainnit, rotatoija, cs,
+					kalib);
 			pokeri = new Pokeri(heittaja, jakaja, kalib);
 			valinta = new PelaajanValinta(nappi, kalib);
-			holdem = new TexasHoldem(heittaja, jakaja, nappi);
+			holdem = new TexasHoldem(rotatoija, heittaja, jakaja, nappi, kalib);
 			kaikki = new JaetaanKaikki(heittaja, jakaja, kalib);
 			
-			// TODO kysytään mitä peliä pelataan
-			/*int peli = 0;
-			DiileriView view = new DiileriView();
-			while (!view.getvoiAloittaa()) {
-				peli = view.getValinta();
-				System.out.println("loops");
-			}*/
+			System.out.println(peli);
 			
 			switch (peli) {
 			case 1:
+				view.PokeriValikko();
 				Behavior[] poker = { pelaajat, pokeri, valinta };
+				System.out.println("Poker");
 
 				arby = new Arbitrator(poker, end = true);
 				break;
 
 			case 2:
+				view.JaaKaikkiValikko();
 				Behavior[] jaaKaikki = { pelaajat, kaikki };
+				System.out.println("Jaa Kaikki");
 
 				arby = new Arbitrator(jaaKaikki, returnWhenInactive);
 				break;
 
 			case 3:
+				view.HoldemValikko();
 				Behavior[] texasholdem = { pelaajat, holdem };
+				System.out.println("HoldEm");
 
-				arby = new Arbitrator(texasholdem);
+				
+				arby = new Arbitrator(texasholdem, end = true);
 				break;
 
 			case 4:
-				lopeta();
-				System.exit(0);
+				view.DemoValikko();
+				// il,mari
 				break;
 
 			}
-			
+
 			// arbitraattorin käynnistys
 			System.out.println("Arby.start");
 			arby.start();
-			
-			//TODO
-			//Kysytäänkö pelataanko uusi peli
-			//jos pelataan, muutetaan uusiPeli trueksi
-			
-			if (1 == 2) {
-				uusiPeli = true;
+			System.out.println("Arby loppu!");
+			// TODO
+			// Kysytäänkö pelataanko uusi peli
+			// jos pelataan, muutetaan uusiPeli trueksi
+			view.VoiPainaa();
+
+			while (!loopz) {
+				loopz = view.getUudestaan();
+				if (loopz) {
+					System.out.println("iffissä: ");
+					uusiPeli = true;
+					break;
+				}
 			}
-			
-			
-			System.out.println("main lopussa");
+			loopz = false;
+
+			System.out.println("main lopussa " + uusiPeli);
 			// Nollataan muuttujat
 			nollaaMuuttujat();
-			
-			//yhteys = null;
+			view.NollaaElementit();
+
+			// yhteys = null;
 			view.setStoppable();
 
 		} while (uusiPeli);
 		System.out.println("Main - stoppable = true ja nyt close ja rekt");
 
 		lopeta();
-		System.exit(0);
+
 	}
-	
+
 	public static void lopeta() throws RemoteException {
 		System.out.println("Lopetetaan moottorit ja sensorit");
+		yhteys = null;
 		nappi.close();
 		cs.close();
 		rotatoija.close();
 		heittaja.close();
 		jakaja.close();
+		System.exit(0);
 	}
-	
+
 	public static void nollaaMuuttujat() {
+		arby = null;
 		pelaajat = null;
 		pokeri = null;
 		valinta = null;

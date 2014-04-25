@@ -15,8 +15,8 @@ public class Pokeri implements Behavior{
 	private RMIRegulatedMotor heittaja;
 	private int pelaajamaara;
 	private int i = 0, x;
-	int[] jaettu = new int[pelaajamaara];
-	int[] lopetus = new int[pelaajamaara];
+	int[] jaettu;
+	int[] lopetus;
 	public static boolean alkukortitJaettu;
 	public static boolean jaa;
 	public static int korttimaara = 1;
@@ -29,7 +29,8 @@ public class Pokeri implements Behavior{
 		heittaja = heittaja2;
 		jakaja = jakaja2;
 		pelaajamaara = kalib.getPelaajamaara();
-		
+		jaettu = new int[pelaajamaara];
+		lopetus = new int[pelaajamaara];
 	}
 
 	@Override
@@ -105,7 +106,7 @@ public class Pokeri implements Behavior{
 			x = 0;
 			i++;
 		}*/
-		
+		System.out.println(" PELAAJAMÄÄRÄ: " + pelaajamaara);
 		korttimaara = 1;
 	}
 	public void tarkastus() {

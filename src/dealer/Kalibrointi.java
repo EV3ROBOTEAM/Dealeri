@@ -109,7 +109,6 @@ public class Kalibrointi {
 						+ ", sijainti = " + pelaajaSijainnit[pelaajanro-1]);
 			}
 		}
-		// l‰hetet‰‰n pelaajien m‰‰r‰
-		TexasHoldem.pelaajamaara = pelaajanro;
+
 	}
 }
