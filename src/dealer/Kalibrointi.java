@@ -40,6 +40,7 @@ public class Kalibrointi {
 	
 	public void nollaaMuuttujat() {
 		this.pelaajanro = 0;
+		pelaajaSijainnit = new float[20];
 		
 	}
 	

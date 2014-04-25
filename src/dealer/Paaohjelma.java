@@ -31,6 +31,12 @@ public class Paaohjelma extends RemoteEV3 {
 	static RMIRegulatedMotor rotatoija;
 	static RMIRegulatedMotor jakaja;
 	static RMIRegulatedMotor heittaja;
+	static Behavior pelaajat;
+	static Behavior pokeri;
+	static Behavior valinta;
+	static Behavior holdem;
+	static Behavior kaikki;
+	static Kalibrointi kalib;
 	
 	public Paaohjelma(String host) throws RemoteException,
 			MalformedURLException, NotBoundException {
@@ -96,21 +102,38 @@ public class Paaohjelma extends RemoteEV3 {
 			System.out.println("loops");
 		}
 		
-		Kalibrointi kalib = new Kalibrointi(rotatoija, nappi, cs);
+		kalib = new Kalibrointi(rotatoija, nappi, cs);
 		kalib.ezkalib();
 
 		// haetaan ja tallennetaan sijainnit ja pelaajanro2
 		float[] pelaajaSijainnit = kalib.sijainnit();
 
 		// behaviorien konstruktorit
-		Behavior pelaajat = new SeuraavaPelaaja(pelaajaSijainnit, rotatoija, cs, kalib);
-		Behavior pokeri = new Pokeri(heittaja, jakaja, kalib);
-		Behavior valinta = new PelaajanValinta(nappi, kalib);
-		Behavior holdem = new TexasHoldem(heittaja, jakaja, nappi);
-		Behavior kaikki = new JaetaanKaikki(heittaja, jakaja, kalib);
+
 		boolean end;
+		boolean uusiPeli = false;
 		do {
 
+			// jos uusiPeli on valittu trueksi
+			// aloitetaan uudestaan kalibroimalla
+			if (uusiPeli) {
+				kalib.ezkalib();
+			}
+			// tehd‰‰n uudet behaviorit uusilla kalibroinnin arvoilla
+			pelaajat = new SeuraavaPelaaja(pelaajaSijainnit, rotatoija, cs, kalib);
+			pokeri = new Pokeri(heittaja, jakaja, kalib);
+			valinta = new PelaajanValinta(nappi, kalib);
+			holdem = new TexasHoldem(heittaja, jakaja, nappi);
+			kaikki = new JaetaanKaikki(heittaja, jakaja, kalib);
+			
+			// TODO kysyt‰‰n mit‰ peli‰ pelataan
+			/*int peli = 0;
+			DiileriView view = new DiileriView();
+			while (!view.getvoiAloittaa()) {
+				peli = view.getValinta();
+				System.out.println("loops");
+			}*/
+			
 			switch (peli) {
 			case 1:
 				Behavior[] poker = { pelaajat, pokeri, valinta };
@@ -136,32 +159,32 @@ public class Paaohjelma extends RemoteEV3 {
 				break;
 
 			}
-
+			
+			// arbitraattorin k‰ynnistys
 			System.out.println("Arby.start");
-			// arbitraattori ja k‰ynnistys
-
 			arby.start();
 			
+			//TODO
+			//Kysyt‰‰nkˆ pelataanko uusi peli
+			//jos pelataan, muutetaan uusiPeli trueksi
 			
-
+			if (1 == 2) {
+				uusiPeli = true;
+			}
+			
+			
 			System.out.println("main lopussa");
-
-			//kalib.nollaaMuuttujat();
+			// Nollataan muuttujat
+			nollaaMuuttujat();
 			
-			yhteys = null;
+			//yhteys = null;
 			view.setStoppable();
 
-		} while (!view.getStoppable());
+		} while (uusiPeli);
 		System.out.println("Main - stoppable = true ja nyt close ja rekt");
 
 		lopeta();
 		System.exit(0);
-		// nayton valinta hommasta return int joka menee jako- ja
-		// pelaajaluokkien konstruktoreihin
-
-		/*
-		 * pelin lopetus, haluatko pelata uudestaan? (k/e) valitse peli
-		 */
 	}
 	
 	public static void lopeta() throws RemoteException {
@@ -171,6 +194,15 @@ public class Paaohjelma extends RemoteEV3 {
 		rotatoija.close();
 		heittaja.close();
 		jakaja.close();
+	}
+	
+	public static void nollaaMuuttujat() {
+		pelaajat = null;
+		pokeri = null;
+		valinta = null;
+		holdem = null;
+		kaikki = null;
+		kalib.nollaaMuuttujat();
 	}
 
 }
