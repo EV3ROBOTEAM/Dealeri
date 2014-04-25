@@ -109,10 +109,6 @@ public class Kalibrointi {
 			}
 		}
 		// l‰hetet‰‰n pelaajien m‰‰r‰
-		SeuraavaPelaaja.pelaajamaara = pelaajanro;
-		Pokeri.pelaajamaara = pelaajanro;
-		JaetaanKaikki.pelaajamaara = pelaajanro;
-		PelaajanValinta.pelaajamaara = pelaajanro;
 		TexasHoldem.pelaajamaara = pelaajanro;
 	}
 }

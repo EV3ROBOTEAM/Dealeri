@@ -103,11 +103,11 @@ public class Paaohjelma extends RemoteEV3 {
 		float[] pelaajaSijainnit = kalib.sijainnit();
 
 		// behaviorien konstruktorit
-		Behavior pelaajat = new SeuraavaPelaaja(pelaajaSijainnit, rotatoija, cs);
-		Behavior pokeri = new Pokeri(heittaja, jakaja);
-		Behavior valinta = new PelaajanValinta(nappi);
+		Behavior pelaajat = new SeuraavaPelaaja(pelaajaSijainnit, rotatoija, cs, kalib);
+		Behavior pokeri = new Pokeri(heittaja, jakaja, kalib);
+		Behavior valinta = new PelaajanValinta(nappi, kalib);
 		Behavior holdem = new TexasHoldem(heittaja, jakaja, nappi);
-		Behavior kaikki = new JaetaanKaikki(heittaja, jakaja);
+		Behavior kaikki = new JaetaanKaikki(heittaja, jakaja, kalib);
 		boolean end;
 		do {
 
@@ -165,7 +165,7 @@ public class Paaohjelma extends RemoteEV3 {
 	}
 	
 	public static void lopeta() throws RemoteException {
-		System.out.println("Lopetetaan moottorit");
+		System.out.println("Lopetetaan moottorit ja sensorit");
 		nappi.close();
 		cs.close();
 		rotatoija.close();

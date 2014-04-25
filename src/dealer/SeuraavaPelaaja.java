@@ -14,7 +14,7 @@ public class SeuraavaPelaaja implements Behavior {
 	private volatile boolean suppressed = false;
 	// moottorit
 	private static RMIRegulatedMotor rotatoija;
-	public static int pelaajamaara;
+	private int pelaajamaara;
 	public static boolean jaettu = false;
 
 	
@@ -31,13 +31,15 @@ public class SeuraavaPelaaja implements Behavior {
 	float ylaraja;
 	float suunta;
 
-	public SeuraavaPelaaja(float pelaajaSijainnit[], RMIRegulatedMotor rotatoija2, HiTechnicCompass c) {
+	public SeuraavaPelaaja(float pelaajaSijainnit[], RMIRegulatedMotor rotatoija2, HiTechnicCompass c, Kalibrointi kalib) {
 		// moottori
 		rotatoija = rotatoija2;
 		// sijainnit kalibroinnista
 		Sijainnit = pelaajaSijainnit;
 		// kompassi
 		kompassi = c.getCompassMode();
+		// pelaajam‰‰r‰t
+		pelaajamaara = kalib.getPelaajamaara();
 	}
 	
 

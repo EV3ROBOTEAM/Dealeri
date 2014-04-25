@@ -12,7 +12,7 @@ public class JaetaanKaikki implements Behavior{
 	// moottorit
 	private RMIRegulatedMotor jakaja;
 	private RMIRegulatedMotor heittaja;
-	public static int pelaajamaara;
+	private int pelaajamaara;
 	// 
 	private int z = 0;
 	private int tarkastus = 0;
@@ -25,9 +25,10 @@ public class JaetaanKaikki implements Behavior{
 		this.tarkastus = 0;
 	}
 
-	public JaetaanKaikki(RMIRegulatedMotor heittaja2, RMIRegulatedMotor jakaja2) {
+	public JaetaanKaikki(RMIRegulatedMotor heittaja2, RMIRegulatedMotor jakaja2, Kalibrointi kalib) {
 		heittaja = heittaja2;
 		jakaja = jakaja2;
+		pelaajamaara = kalib.getPelaajamaara();
 	}
 
 	@Override

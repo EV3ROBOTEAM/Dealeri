@@ -7,13 +7,16 @@ import lejos.robotics.subsumption.Behavior;
 public class PelaajanValinta implements Behavior {
 
 	private volatile boolean suppressed = false;
-	public static int pelaajamaara;
+	private int pelaajamaara;
 	SampleProvider painallus;
 	private long click, click2, painalluksenPituus;
 	float[] näyte = new float[1];
 	private int korttienLkm, vuoro = 0;
-	public PelaajanValinta(EV3TouchSensor nappi) {
+	
+	
+	public PelaajanValinta(EV3TouchSensor nappi, Kalibrointi kalib) {
 		this.painallus = nappi.getTouchMode();
+		pelaajamaara = kalib.getPelaajamaara();
 	}
 
 	@Override
