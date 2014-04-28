@@ -13,7 +13,6 @@ public class DiileriDemo implements Behavior {
 	private RMIRegulatedMotor rotatoija;
 	private RMIRegulatedMotor jakaja;
 	private RMIRegulatedMotor heittaja;
-	private EV3TouchSensor nappi;
 	static boolean demossa = true;
 	private volatile boolean suppressed = false;
 	SampleProvider painallus;
@@ -21,11 +20,13 @@ public class DiileriDemo implements Behavior {
 
 	public DiileriDemo(RMIRegulatedMotor rotatoija2,
 			RMIRegulatedMotor heittaja2, RMIRegulatedMotor jakaja2,
-			EV3TouchSensor nappi2) {
+			EV3TouchSensor nappi2, boolean peli) {
 		rotatoija = rotatoija2;
 		jakaja = jakaja2;
 		heittaja = heittaja2;
-		nappi = nappi2;
+		demossa = peli;
+		painallus = nappi2.getTouchMode();
+		näyte[0] = 0;
 	}
 
 	@Override
@@ -36,7 +37,7 @@ public class DiileriDemo implements Behavior {
 	@Override
 	public void action() {
 		System.out.println("DIILERIDEMOSSA");
-		näyte[0] = 0;
+		
 		
 			
 		do{
@@ -55,10 +56,10 @@ public class DiileriDemo implements Behavior {
 		}
 		Sound.beepSequenceUp();
 		
-		for (int i = 0; i <= 10; i++) {
+		for (int i = 0; i <= 8; i++) {
 			Sound.playTone((nopeus * 11), 50);
 			System.out.println("kiihdytys");
-			nopeus += 22;
+			nopeus += 24;
 			try {
 				rotatoija.setSpeed(nopeus);
 			} catch (RemoteException e1) {
@@ -89,9 +90,15 @@ public class DiileriDemo implements Behavior {
 			} catch (InterruptedException e) {
 			}
 		}
-		}while(nappiPainettu() == 0);
+			while (näyte[0] == 0) {
+				painallus.fetchSample(näyte, 0);
+			}
+			break;
+		} while(näyte[0] == 0);
 		Sound.buzz();
-
+		try {
+			rotatoija.stop(true);
+		} catch (RemoteException e) {}
 
 		demossa = false;
 		suppress();
@@ -106,39 +113,28 @@ public class DiileriDemo implements Behavior {
 	}
 
 	public float nappiPainettu() {
-		while (true) {
-			painallus.fetchSample(näyte, 0);
-			return näyte[0];
+		while (näyte[0] == 0) {
 		}
-
+		return näyte[0];
 	}
 
 	public void jaaKortti(int maara) {
 		for (int i = 0; i < maara; i++) {
 			try {
 				heittaja.backward();
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} catch (RemoteException e) {}
+			
 			try {
 				jakaja.rotate(-300);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} catch (RemoteException e) {}
+			
 			try {
 				heittaja.stop(true);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} catch (RemoteException e) {}
+			
 			try {
-				jakaja.rotate(200);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				jakaja.rotate(300);
+			} catch (RemoteException e) {}
 		}
 	}
 

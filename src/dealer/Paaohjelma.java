@@ -3,26 +3,13 @@ package dealer;
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-
-import lejos.hardware.Brick;
-import lejos.hardware.BrickFinder;
-import lejos.hardware.BrickInfo;
-import lejos.hardware.Button;
-import lejos.hardware.ev3.LocalEV3;
-import lejos.hardware.lcd.Font;
-import lejos.hardware.lcd.GraphicsLCD;
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
-import lejos.hardware.motor.EV3MediumRegulatedMotor;
-import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3TouchSensor;
 import lejos.hardware.sensor.HiTechnicCompass;
 import lejos.remote.ev3.RMIRegulatedMotor;
-import lejos.remote.ev3.RMIRemoteRegulatedMotor;
 import lejos.remote.ev3.RemoteEV3;
 import lejos.robotics.subsumption.Arbitrator;
 import lejos.robotics.subsumption.Behavior;
-import lejos.utility.TextMenu;
 
 public class Paaohjelma extends RemoteEV3 {
 
@@ -38,13 +25,13 @@ public class Paaohjelma extends RemoteEV3 {
 	static Behavior valinta;
 	static Behavior holdem;
 	static Behavior kaikki;
+	static Behavior demo;
 	static Kalibrointi kalib;
 	static boolean loopz = false;
 
 	public Paaohjelma(String host) throws RemoteException,
 			MalformedURLException, NotBoundException {
 		super(host);
-		// TODO Auto-generated constructor stub
 	}
 
 	public String ip() throws RemoteException, MalformedURLException,
@@ -55,112 +42,100 @@ public class Paaohjelma extends RemoteEV3 {
 
 	public static void main(String[] args) throws RemoteException,
 			MalformedURLException, NotBoundException {
-
-		// REKTYHTEYS
-		/*for (int i = 0; i < 10; i++) {
-			System.out.println("yhteyskok: "+i);
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e1) {
-			}
-			try {
-				BrickInfo[] bricks = BrickFinder.discover();
-				for (BrickInfo info : bricks) {
-					System.out.println("Ev3 found on Bluetooth ip: "
-							+ info.getIPAddress());
-				}
-
-				yhteys = new RemoteEV3(bricks[0].getIPAddress());
-
-			} catch (Exception e) {
-				System.out.println("ythteyttä ei löydetty");
-				lopeta();
-				e.printStackTrace();
-			}
-
-		}*/
-		yhteys = new RemoteEV3("10.0.1.1");
 		
-		System.out.println(yhteys.getName());
+		// Muuttujat
+		boolean alussa = true;
+		boolean returnWhenInactive = true;
+		int peli = 0;
+		boolean uusiPeli = false;
+		float[] pelaajaSijainnit = null;
 		
+		// käyttöliittymä
+		DiileriView view = new DiileriView();
+		
+		// yhteys
+		yhteys = new RemoteEV3("10.0.1.1");		
 		yhteys.setDefault();
+		
 		// sensorien konstruktorit ja sampleprovierit
 		nappi = new EV3TouchSensor(SensorPort.S1);
 		cs = new HiTechnicCompass(SensorPort.S3);
-
+		
+		// Moottorit ja nopeudet
 		rotatoija = yhteys.createRegulatedMotor("A", 'L');
 		jakaja = yhteys.createRegulatedMotor("B", 'L');
 		heittaja = yhteys.createRegulatedMotor("C", 'M');
-
-		boolean returnWhenInactive = true;
-
-
-
-		// moottorien nopeudet
 		rotatoija.setSpeed(100);
 		jakaja.setSpeed(720);
 		heittaja.setSpeed(720);
+		view.Paavalikko();
 
-		int peli = 0;
-		DiileriView view = new DiileriView();
+		// Valitaan peli
 		while (!view.getvoiAloittaa()) {
 			peli = view.getValinta();
 		}
 		System.out.println("PELI VALITTU");
 		view.setvoiAloittaa();
 
-		kalib = new Kalibrointi(rotatoija, nappi, cs);
-		view.KalibrointiValikko();
-		kalib.ezkalib();
+		// Pelaajien kalibrointi
+		kalib = new Kalibrointi(rotatoija, nappi, cs, view);
 
-		// haetaan ja tallennetaan sijainnit ja pelaajanro2
-		float[] pelaajaSijainnit = kalib.sijainnit();
+		if (peli != 4) {
+			view.KalibrointiValikko();
+			kalib.ezkalib();
+			// haetaan ja tallennetaan sijainnit
+			pelaajaSijainnit = kalib.sijainnit();
+		}
 
-		// behaviorien konstruktorit
 
-		boolean end;
-		boolean uusiPeli = false;
 		
+
 		do {
 
 			// jos uusiPeli on valittu trueksi
-			// aloitetaan uudestaan kalibroimalla
+			// valitaan uusi peli
 			if (uusiPeli) {
-				System.out.println("uudessaPelissä");
 				view.Paavalikko();
 				while (!view.getvoiAloittaa()) {
 					peli = view.getValinta();
 				}
 				if (peli != 4) {
+					// kalibroidaan jos tarpeelista
+					view.KalibrointiValikko();
 					kalib.ezkalib();
+					pelaajaSijainnit = kalib.sijainnit();
+					
 				}
 				view.setvoiAloittaa();
 			}
-
-			uusiPeli = false;
-			// tehdään uudet behaviorit uusilla kalibroinnin arvoilla
 			
+			uusiPeli = false;
+			
+			// behaviorien konstruktorit
 			pelaajat = new SeuraavaPelaaja(pelaajaSijainnit, rotatoija, cs,
-					kalib);
+					kalib, alussa);
 			pokeri = new Pokeri(heittaja, jakaja, kalib);
 			valinta = new PelaajanValinta(nappi, kalib);
 			holdem = new TexasHoldem(rotatoija, heittaja, jakaja, nappi, kalib);
 			kaikki = new JaetaanKaikki(heittaja, jakaja, kalib);
+			demo = new DiileriDemo(rotatoija, heittaja, jakaja, nappi, true);
 			
-			System.out.println(peli);
-			
+			// Luodaan valitun pelin arbitrator
 			switch (peli) {
 			case 1:
 				view.PokeriValikko();
 				Behavior[] poker = { pelaajat, pokeri, valinta };
+				
 				System.out.println("Poker");
-
-				arby = new Arbitrator(poker, end = true);
+				
+				arby = new Arbitrator(poker, returnWhenInactive);
 				break;
 
 			case 2:
 				view.JaaKaikkiValikko();
 				Behavior[] jaaKaikki = { pelaajat, kaikki };
+				rotatoija.setSpeed(120);
+
 				System.out.println("Jaa Kaikki");
 
 				arby = new Arbitrator(jaaKaikki, returnWhenInactive);
@@ -172,25 +147,27 @@ public class Paaohjelma extends RemoteEV3 {
 				System.out.println("HoldEm");
 
 				
-				arby = new Arbitrator(texasholdem, end = true);
+				arby = new Arbitrator(texasholdem, returnWhenInactive);
 				break;
 
 			case 4:
 				view.DemoValikko();
-				// il,mari
+				Behavior[] diileridemo = { demo };
+				System.out.println("Diileridemo");
+				
+				arby = new Arbitrator(diileridemo, returnWhenInactive);
 				break;
 
 			}
 
-			// arbitraattorin käynnistys
+			// arbitraattorin käynnistys ja nappien sulkeminen
 			System.out.println("Arby.start");
+			view.EiVoiPainaa();
 			arby.start();
 			System.out.println("Arby loppu!");
-			// TODO
-			// Kysytäänkö pelataanko uusi peli
-			// jos pelataan, muutetaan uusiPeli trueksi
 			view.VoiPainaa();
-
+			view.setUudestaan();
+			// Pelataanko uudestaan
 			while (!loopz) {
 				loopz = view.getUudestaan();
 				if (loopz) {
@@ -200,20 +177,16 @@ public class Paaohjelma extends RemoteEV3 {
 				}
 			}
 			loopz = false;
-
+			view.setUudestaan();
+			
 			System.out.println("main lopussa " + uusiPeli);
 			// Nollataan muuttujat
 			nollaaMuuttujat();
-			view.NollaaElementit();
-
-			// yhteys = null;
-			view.setStoppable();
+			rotatoija.setSpeed(100);
 
 		} while (uusiPeli);
 		System.out.println("Main - stoppable = true ja nyt close ja rekt");
-
 		lopeta();
-
 	}
 
 	public static void lopeta() throws RemoteException {

@@ -1,12 +1,7 @@
 package dealer;
 
 import java.rmi.RemoteException;
-
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
-import lejos.hardware.motor.EV3MediumRegulatedMotor;
-import lejos.hardware.port.MotorPort;
 import lejos.remote.ev3.RMIRegulatedMotor;
-import lejos.remote.ev3.RMIRemoteRegulatedMotor;
 import lejos.robotics.subsumption.Behavior;
 
 public class Pokeri implements Behavior{
@@ -19,6 +14,7 @@ public class Pokeri implements Behavior{
 	int[] lopetus;
 	public static boolean alkukortitJaettu;
 	public static boolean jaa;
+	public static boolean viimeinenPelaaja = false;
 	public static int korttimaara = 1;
 	int z = 0;
 	int tarkastus = 0;
@@ -30,7 +26,11 @@ public class Pokeri implements Behavior{
 		jakaja = jakaja2;
 		pelaajamaara = kalib.getPelaajamaara();
 		jaettu = new int[pelaajamaara];
-		lopetus = new int[pelaajamaara];
+		
+		viimeinenPelaaja = false;
+		for (int i = 0 ; i < jaettu.length ; i++) {
+			jaettu[i] = 0;
+		}
 	}
 
 	@Override
@@ -48,6 +48,10 @@ public class Pokeri implements Behavior{
 	public void action() {
 		SeuraavaPelaaja.kohdalla = false;
 		jaa = false;
+		
+		if (viimeinenPelaaja) {
+			alkukortitJaettu = false;
+		}
 		jaaKortti(korttimaara);
 		// tarkastetaan, kenelle seuraava kortti jaetaa ja että onko alkukortit jaettu jo
 		tarkastus();
@@ -64,28 +68,21 @@ public class Pokeri implements Behavior{
 		for (int i = 0; i < maara; i++) {
 			try {
 				heittaja.backward();
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} catch (RemoteException e) {}
+			
 			try {
 				jakaja.rotate(-300);
 			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				
 			}
 			try {
 				heittaja.stop(true);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} catch (RemoteException e) {}
 			try {
+				
 				jakaja.rotate(200);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} catch (RemoteException e) {}
+			
 		}
 		
 		/*if (alkukortitJaettu) {

@@ -2,10 +2,7 @@ package dealer;
 
 import java.rmi.RemoteException;
 
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
-import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.remote.ev3.RMIRegulatedMotor;
-import lejos.remote.ev3.RMIRemoteRegulatedMotor;
 import lejos.robotics.subsumption.Behavior;
 
 public class JaetaanKaikki implements Behavior{
@@ -14,6 +11,8 @@ public class JaetaanKaikki implements Behavior{
 	private RMIRegulatedMotor heittaja;
 	private int pelaajamaara;
 	// 
+	private int korttimaara;
+	private int[] jaettu;
 	private int z = 0;
 	private int tarkastus = 0;
 	// supressed flagi
@@ -29,6 +28,7 @@ public class JaetaanKaikki implements Behavior{
 		heittaja = heittaja2;
 		jakaja = jakaja2;
 		pelaajamaara = kalib.getPelaajamaara();
+		this.jaettu = new int[pelaajamaara];
 	}
 
 	@Override
@@ -38,10 +38,11 @@ public class JaetaanKaikki implements Behavior{
 
 	@Override
 	public void action() {
+		
 		SeuraavaPelaaja.kohdalla = false;
-		int korttimaara = (int) (52 / pelaajamaara);
-		jaaKortti(2);
-		// tarkastetaan kenelle seuraava kortti jaetaa ja ett‰ onko alkukortit jaettu jo
+		korttimaara = (int) (52 / pelaajamaara);
+		jaaKortti(1);
+		// tarkastetaan kenelle seuraava kortti jaetaa ja ett‰ onko kortit jaettu jo
 		tarkastus();
 
 		suppress();
@@ -81,15 +82,30 @@ public class JaetaanKaikki implements Behavior{
 		}
 	}
 	public void tarkastus() {
+		jaettu[z] += 1;
 		// katsotaan ollaanko viimeisess‰ pelaajassa
 		if (z+1 >= pelaajamaara) {
-			SeuraavaPelaaja.peliss‰ = false;
+			//SeuraavaPelaaja.peliss‰ = false;
 			z = 0;
 		} else {
 			// jos ei, siirryt‰‰n seuraavaan pelaajaan
 			z++;
 		}
-
+		
+		// tarkastetaan onko pelaajille jaettu kaikki kortit
+		for (int g = 0; g < jaettu.length; g++) {
+			if (jaettu[g] == korttimaara){
+				tarkastus++;
+			} 
+		}
+		
+		if (tarkastus == jaettu.length) {
+			SeuraavaPelaaja.peliss‰ = false;
+			
+		} else {
+			tarkastus = 0;
+		}
+		
 	}
 
 }

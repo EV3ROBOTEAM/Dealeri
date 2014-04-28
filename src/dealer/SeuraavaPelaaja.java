@@ -1,11 +1,8 @@
 package dealer;
 
 import java.rmi.RemoteException;
-
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.sensor.HiTechnicCompass;
 import lejos.remote.ev3.RMIRegulatedMotor;
-import lejos.remote.ev3.RMIRemoteRegulatedMotor;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.subsumption.Behavior;
 
@@ -31,7 +28,7 @@ public class SeuraavaPelaaja implements Behavior {
 	float ylaraja;
 	float suunta;
 
-	public SeuraavaPelaaja(float pelaajaSijainnit[], RMIRegulatedMotor rotatoija2, HiTechnicCompass c, Kalibrointi kalib) {
+	public SeuraavaPelaaja(float pelaajaSijainnit[], RMIRegulatedMotor rotatoija2, HiTechnicCompass c, Kalibrointi kalib, boolean alussa) {
 		// moottori
 		rotatoija = rotatoija2;
 		// sijainnit kalibroinnista
@@ -40,6 +37,8 @@ public class SeuraavaPelaaja implements Behavior {
 		kompassi = c.getCompassMode();
 		// pelaajam‰‰r‰t
 		pelaajamaara = kalib.getPelaajamaara();
+		// aloitetaan uusi peli
+		peliss‰ = alussa;
 	}
 	
 
@@ -53,9 +52,11 @@ public class SeuraavaPelaaja implements Behavior {
 		
 		alaraja = (Sijainnit[pelaaja] - 6);
 		if (alaraja <= 0) 
-			alaraja = 1;
+			alaraja = 360 + alaraja;
 		
 		ylaraja = (Sijainnit[pelaaja] + 6);
+		if (ylaraja > 360)
+			ylaraja = ylaraja - 360;
 		
 		// katsotaan kumpaan suuntaan kannattaa l‰hte‰ liikkumaan
 		kompassi.fetchSample(kompassinArvo, 0);
@@ -64,37 +65,29 @@ public class SeuraavaPelaaja implements Behavior {
 		if ((Sijainnit[pelaaja] - suunta + 360) % 360 < 180) {
 			  try {
 				rotatoija.forward();
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				
-				e.printStackTrace();
-			}
+			} catch (RemoteException e) {}
+			  
 		}	else	{
 			  try {
 				rotatoija.backward();
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} catch (RemoteException e) {}
 		}
 		
-		System.out.println("ETSITƒƒN: " + Sijainnit[pelaaja]);
+		System.out.println("ETSITƒƒN: " + Sijainnit[pelaaja] + "YLƒRAJA: " + ylaraja + ", ALARAJA: " +
+		 alaraja);
 		
 		// etsit‰‰n kompassin arvoa alarajan ja yl‰rajan v‰list‰
 		while (!(kompassinArvo[0] > alaraja && kompassinArvo[0] < ylaraja)) {
 			kompassi.fetchSample(kompassinArvo, 0);
-			System.out.println(kompassinArvo[0]);
 		}
-		
+		System.out.println("Lˆydettiin: "+ kompassinArvo[0]);
+
 		kohdalla = true;
 		
 		try {
 			rotatoija.stop(true);
 			System.out.println("STOPATTU");
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} catch (RemoteException e) {}
 
 		
 		

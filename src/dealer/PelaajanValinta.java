@@ -1,5 +1,6 @@
 package dealer;
 
+import lejos.hardware.Sound;
 import lejos.hardware.sensor.EV3TouchSensor;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.subsumption.Behavior;
@@ -11,12 +12,13 @@ public class PelaajanValinta implements Behavior {
 	SampleProvider painallus;
 	private long click, click2, painalluksenPituus;
 	float[] näyte = new float[1];
-	private int korttienLkm, vuoro = 0;
+	private int korttienLkm, vuoro;
 	
 	
 	public PelaajanValinta(EV3TouchSensor nappi, Kalibrointi kalib) {
 		this.painallus = nappi.getTouchMode();
 		pelaajamaara = kalib.getPelaajamaara();
+		vuoro = 0;
 	}
 
 	@Override
@@ -35,6 +37,12 @@ public class PelaajanValinta implements Behavior {
 		SeuraavaPelaaja.kohdalla = false;
 		korttienLkm = 0;
 		
+		if ((vuoro + 1) == pelaajamaara) {
+			SeuraavaPelaaja.kohdalla = false;
+			SeuraavaPelaaja.pelissä = false;
+			Pokeri.viimeinenPelaaja = true;
+		}
+		
 		System.out.println("PELAAJAN VALINNASSA");
 		while (true) {
 			while (näyte[0] == 0) {
@@ -47,7 +55,6 @@ public class PelaajanValinta implements Behavior {
 			}
 			click2 = System.currentTimeMillis();
 			painalluksenPituus = click2 - click;
-			//System.out.println("painalluksenPituus: " + painalluksenPituus);
 
 			try {
 				Thread.sleep(50);
@@ -57,6 +64,7 @@ public class PelaajanValinta implements Behavior {
 			// jos painalluksen pituus on alle 250, se lasketaan kortiksi
 			// jos yli, passataan
 			if (painalluksenPituus < 250) {
+				Sound.playTone(900, 50);
 				korttienLkm++;
 				Pokeri.jaa = true;
 				Pokeri.korttimaara = korttienLkm;
@@ -68,17 +76,13 @@ public class PelaajanValinta implements Behavior {
 				}
 			} else {
 				vuoro++;
-				System.out.println("Vuoro jaettu: " + vuoro);
+				System.out.println("Vuoro jaettu: " + vuoro);				
 				break;
 			}
 		}
-		if (vuoro == pelaajamaara) {
-			System.out.println("Kortit jaettu");
-			SeuraavaPelaaja.kohdalla = false;
-			Pokeri.alkukortitJaettu = false;
-			SeuraavaPelaaja.pelissä = false;
-		}
+		Sound.playTone(200, 200);
 		suppress();
+		
 	}
 
 	@Override
