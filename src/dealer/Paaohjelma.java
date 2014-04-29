@@ -44,7 +44,6 @@ public class Paaohjelma extends RemoteEV3 {
 			MalformedURLException, NotBoundException {
 		
 		// Muuttujat
-		boolean alussa = true;
 		boolean returnWhenInactive = true;
 		int peli = 0;
 		boolean uusiPeli = false;
@@ -87,14 +86,11 @@ public class Paaohjelma extends RemoteEV3 {
 			pelaajaSijainnit = kalib.sijainnit();
 		}
 
-
-		
-
 		do {
 
 			// jos uusiPeli on valittu trueksi
 			// valitaan uusi peli
-			if (uusiPeli) {
+			if (loopz) {
 				view.Paavalikko();
 				while (!view.getvoiAloittaa()) {
 					peli = view.getValinta();
@@ -109,11 +105,12 @@ public class Paaohjelma extends RemoteEV3 {
 				view.setvoiAloittaa();
 			}
 			
+			loopz = false;
 			uusiPeli = false;
 			
 			// behaviorien konstruktorit
 			pelaajat = new SeuraavaPelaaja(pelaajaSijainnit, rotatoija, cs,
-					kalib, alussa);
+					kalib, true);
 			pokeri = new Pokeri(heittaja, jakaja, kalib);
 			valinta = new PelaajanValinta(nappi, kalib);
 			holdem = new TexasHoldem(rotatoija, heittaja, jakaja, nappi, kalib);
@@ -121,6 +118,7 @@ public class Paaohjelma extends RemoteEV3 {
 			demo = new DiileriDemo(rotatoija, heittaja, jakaja, nappi, true);
 			
 			// Luodaan valitun pelin arbitrator
+			
 			switch (peli) {
 			case 1:
 				view.PokeriValikko();
@@ -167,21 +165,31 @@ public class Paaohjelma extends RemoteEV3 {
 			System.out.println("Arby loppu!");
 			view.VoiPainaa();
 			view.setUudestaan();
+			
 			// Pelataanko uudestaan
+			boolean flag = false;
 			while (!loopz) {
 				loopz = view.getUudestaan();
 				if (loopz) {
 					System.out.println("iffissä: ");
 					uusiPeli = true;
+					nollaaMuuttujat();
+					break;
+				}
+				flag = view.getRetryde();
+				if (flag) {
+					System.out.println("flagger1325678");
+					uusiPeli = true;
+					nollaaPelit();
 					break;
 				}
 			}
-			loopz = false;
 			view.setUudestaan();
-			
+			flag = false;
+			view.setRetryde();
 			System.out.println("main lopussa " + uusiPeli);
 			// Nollataan muuttujat
-			nollaaMuuttujat();
+			
 			rotatoija.setSpeed(100);
 
 		} while (uusiPeli);
@@ -208,6 +216,15 @@ public class Paaohjelma extends RemoteEV3 {
 		holdem = null;
 		kaikki = null;
 		kalib.nollaaMuuttujat();
+	}
+	
+	public static void nollaaPelit() {
+		arby = null;
+		pelaajat = null;
+		pokeri = null;
+		valinta = null;
+		holdem = null;
+		kaikki = null;
 	}
 
 }

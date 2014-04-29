@@ -52,11 +52,11 @@ public class SeuraavaPelaaja implements Behavior {
 		
 		alaraja = (Sijainnit[pelaaja] - 6);
 		if (alaraja <= 0) 
-			alaraja = 360 + alaraja;
+			alaraja = 1;
 		
 		ylaraja = (Sijainnit[pelaaja] + 6);
 		if (ylaraja > 360)
-			ylaraja = ylaraja - 360;
+			ylaraja = 359;
 		
 		// katsotaan kumpaan suuntaan kannattaa lähteä liikkumaan
 		kompassi.fetchSample(kompassinArvo, 0);

@@ -63,7 +63,7 @@ public class PelaajanValinta implements Behavior {
 			
 			// jos painalluksen pituus on alle 250, se lasketaan kortiksi
 			// jos yli, passataan
-			if (painalluksenPituus < 250) {
+			if (painalluksenPituus < 750) {
 				Sound.playTone(900, 50);
 				korttienLkm++;
 				Pokeri.jaa = true;

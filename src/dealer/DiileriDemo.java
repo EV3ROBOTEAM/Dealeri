@@ -39,8 +39,35 @@ public class DiileriDemo implements Behavior {
 		System.out.println("DIILERIDEMOSSA");
 		
 		
-			
-		do{
+		// VAIHTOEHTO DEMO
+		try {
+			rotatoija.setSpeed(250);
+			rotatoija.forward();
+			heittaja.backward();
+		} catch (RemoteException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		for (int i = 0; i <= 52; i++) {
+			try {
+				if (i == 52){
+					jakaja.rotate(-300);
+					break;
+				}
+				jakaja.rotate(-190-(i/2));
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		try {
+			rotatoija.stop(true);
+			heittaja.stop(true);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		/*do{
 		int nopeus = 20;
 		try {
 			rotatoija.setSpeed(nopeus);
@@ -56,10 +83,10 @@ public class DiileriDemo implements Behavior {
 		}
 		Sound.beepSequenceUp();
 		
-		for (int i = 0; i <= 8; i++) {
+		for (int i = 0; i <= 24; i++) {
 			Sound.playTone((nopeus * 11), 50);
 			System.out.println("kiihdytys");
-			nopeus += 24;
+			nopeus += 10;
 			try {
 				rotatoija.setSpeed(nopeus);
 			} catch (RemoteException e1) {
@@ -69,7 +96,7 @@ public class DiileriDemo implements Behavior {
 			jaaKortti(1);
 			Sound.playTone((nopeus * 7), 30);
 			try {
-				Thread.sleep(23);
+				Thread.sleep(10);
 			} catch (InterruptedException e) {
 			}
 		}
@@ -99,7 +126,7 @@ public class DiileriDemo implements Behavior {
 		try {
 			rotatoija.stop(true);
 		} catch (RemoteException e) {}
-
+		*/
 		demossa = false;
 		suppress();
 		

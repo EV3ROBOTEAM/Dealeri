@@ -67,6 +67,7 @@ public class Kalibrointi {
 
 	public void ezkalib() {
 		saie = new MoottoriSaie(this.rotatoija);
+		view.KalibrointiValikko();
 
 		System.out.println("ROTATETAAN");
 		// otetaan ensimmäisen pelaajan piste, jonka jälkeen pyöritään 420-astetta
@@ -95,7 +96,7 @@ public class Kalibrointi {
 		view.kasvataNumeroa();
 		System.out.println("Pelaajanro = " + pelaajanro
 				+ ", sijainti = " + pelaajaSijainnit[pelaajanro-1]);
-		view.KalibrointiValikko();
+		
 		try {
 			rotatoija.stop(true);
 		} catch (RemoteException e1) {}

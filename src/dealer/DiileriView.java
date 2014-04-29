@@ -46,10 +46,10 @@ class DiileriView extends JFrame {
 	private BufferedImage valpel, aloita, lopeta, sjainnit;
 	private BufferedImage aloitapainettu, lopetapainettu;
 	private BufferedImage pokerititle, jaakaikkititle, holdemtitle, demotitle,
-			kalibrointitle, yhdistystitle;
+			kalibrointitle, yhdistystitle, retrymusta, retryrdy;
 	private JButton valpelnappi, aloitanappi, lopetanappi, sjainnitnappi;
 	private JButton poktitle, jktitle, holdtitle, dmtitle, kalibtitle,
-			yhdtitle;
+			yhdtitle, retrybutt;
 	// panelit
 	private JLabel background;
 	private JLabel otsikkopaneeli;
@@ -66,6 +66,7 @@ class DiileriView extends JFrame {
 	private volatile boolean uudestaanjee = false;
 	private volatile boolean retrynappi = false;
 	private static int kasvata = 0;
+	private volatile boolean retryde = false;
 	// mihin menuun mennään
 	private int valinta;
 
@@ -141,8 +142,9 @@ class DiileriView extends JFrame {
 	}
 
 	public void kasvataNumeroa() {
-		Aanieffekti(1);
+		Aanieffekti(1);	
 		kasvata++;
+
 		if (kasvata == 1) {
 			numeroalusta.setIcon((Icon) new ImageIcon(((new ImageIcon(yksi))
 					.getImage()).getScaledInstance(200, 250,
@@ -236,6 +238,7 @@ class DiileriView extends JFrame {
 		pelipaneeli = new JLabel();
 		pelipaneeli.setLayout(new FlowLayout());
 		pelipaneeli.add(uudelleen);
+		pelipaneeli.add(retrybutt);
 
 		// alimmainen paneeli
 		kaynnistyspaneeli = new JLabel();
@@ -267,6 +270,7 @@ class DiileriView extends JFrame {
 		pelipaneeli = new JLabel();
 		pelipaneeli.setLayout(new FlowLayout());
 		pelipaneeli.add(uudelleen);
+		pelipaneeli.add(retrybutt);
 
 		// alin paneeli
 		kaynnistyspaneeli = new JLabel();
@@ -294,11 +298,11 @@ class DiileriView extends JFrame {
 		otsikkopaneeli = new JLabel();
 		otsikkopaneeli.setLayout(new FlowLayout());
 		otsikkopaneeli.add(holdtitle);
-
 		// keskimmäinen paneeli
 		pelipaneeli = new JLabel();
 		pelipaneeli.setLayout(new FlowLayout());
 		pelipaneeli.add(uudelleen);
+		pelipaneeli.add(retrybutt);
 
 		// alin paneeeli
 		kaynnistyspaneeli = new JLabel();
@@ -331,6 +335,7 @@ class DiileriView extends JFrame {
 		pelipaneeli = new JLabel();
 		pelipaneeli.setLayout(new FlowLayout());
 		pelipaneeli.add(uudelleen);
+		pelipaneeli.add(retrybutt);
 
 		// alin paneeeli
 		kaynnistyspaneeli = new JLabel();
@@ -360,6 +365,10 @@ class DiileriView extends JFrame {
 		otsikkopaneeli.setLayout(new FlowLayout());
 
 		// keskimmäinen paneeli
+		
+		numeroalusta.setIcon((Icon) new ImageIcon(((new ImageIcon(nolla))
+				.getImage()).getScaledInstance(200, 250,
+						java.awt.Image.SCALE_SMOOTH)));
 		pelipaneeli = new JLabel();
 		pelipaneeli.setLayout(new FlowLayout());
 		pelipaneeli.add(numeroalusta);
@@ -445,8 +454,20 @@ class DiileriView extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				if (retrynappi) {
 					uudestaanjee = true;
-					System.out.println("uudestaan");
+					System.out.println("paavlikkoon");
 					Aanieffekti(2);
+				} else {
+					Aanieffekti(4);
+				}
+			}
+		});
+		
+		retrybutt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (retrynappi) {
+					System.out.println("retry");
+					Aanieffekti(2);
+					retryde = true;
 				} else {
 					Aanieffekti(4);
 				}
@@ -481,6 +502,14 @@ class DiileriView extends JFrame {
 
 	public boolean getUudestaan() {
 		return uudestaanjee;
+	}
+	
+	public boolean getRetryde() {
+		return retryde;
+	}
+	
+	public void setRetryde() {
+		retryde = false;
 	}
 
 	public void setUudestaan() {
@@ -691,12 +720,20 @@ class DiileriView extends JFrame {
 		uudelleen.setIcon((Icon) new ImageIcon(((new ImageIcon(uudelleenkuva))
 				.getImage()).getScaledInstance(270, 170,
 				java.awt.Image.SCALE_SMOOTH)));
+		
+		retrybutt.setIcon((Icon) new ImageIcon(((new ImageIcon(retryrdy))
+				.getImage()).getScaledInstance(270, 170,
+				java.awt.Image.SCALE_SMOOTH)));
+		
 		Aanieffekti(3);
 		retrynappi = true;
 	}
 
 	public void EiVoiPainaa() {
 		uudelleen.setIcon((Icon) new ImageIcon(((new ImageIcon(uudelleenmusta))
+				.getImage()).getScaledInstance(270, 170,
+				java.awt.Image.SCALE_SMOOTH)));
+		retrybutt.setIcon((Icon) new ImageIcon(((new ImageIcon(retrymusta))
 				.getImage()).getScaledInstance(270, 170,
 				java.awt.Image.SCALE_SMOOTH)));
 	}
@@ -708,8 +745,8 @@ class DiileriView extends JFrame {
 			jaakaikkikuva = ImageIO.read(new File("Jaakaikki.png"));
 			holdemkuva = ImageIO.read(new File("TexasHoldEm.png"));
 			demokuva = ImageIO.read(new File("Diileridemo.png"));
-			uudelleenkuva = ImageIO.read(new File("PelaaUudelleen.png"));
-			uudelleenmusta = ImageIO.read(new File("PelaaUudelleen_musta.png"));
+			uudelleenkuva = ImageIO.read(new File("PienempiKuin_painettu.png"));
+			uudelleenmusta = ImageIO.read(new File("PienempiKuin.png"));
 			// napit painettu
 			pokeripainettu = ImageIO.read(new File("Pokeri_painettu.png"));
 			jaakaikkipainettu = ImageIO
@@ -718,6 +755,10 @@ class DiileriView extends JFrame {
 			demopainettu = ImageIO.read(new File("Diileridemo_painettu.png"));
 			uudelleenpainettu = ImageIO.read(new File(
 					"PelaaUudelleen_pressed.png"));
+			
+			//retry
+			retrymusta = ImageIO.read(new File("PelaaUudelleen_musta.png"));
+			retryrdy = ImageIO.read(new File("PelaaUudelleen_pressed.png"));
 			// takaisinpäin
 			takaisinkuva = ImageIO.read(new File("PienempiKuin_painettu.png"));
 
@@ -731,8 +772,18 @@ class DiileriView extends JFrame {
 				e1.printStackTrace();
 			}
 		}
+	
 
 		// TEHDÄÄN NAPIT JA SKAALATAAN NE
+		retrybutt = new JButton(new ImageIcon(
+				((new ImageIcon(retrymusta)).getImage()).getScaledInstance(240,
+						160, java.awt.Image.SCALE_SMOOTH)));
+		retrybutt.setBorderPainted(false);
+		retrybutt.setFocusPainted(false);
+		retrybutt.setContentAreaFilled(false);
+
+		
+		
 		pokerinappi = new JButton(new ImageIcon(
 				((new ImageIcon(pokerikuva)).getImage()).getScaledInstance(240,
 						160, java.awt.Image.SCALE_SMOOTH)));

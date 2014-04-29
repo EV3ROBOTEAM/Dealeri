@@ -26,7 +26,7 @@ public class Pokeri implements Behavior{
 		jakaja = jakaja2;
 		pelaajamaara = kalib.getPelaajamaara();
 		jaettu = new int[pelaajamaara];
-		
+		alkukortitJaettu = false;
 		viimeinenPelaaja = false;
 		for (int i = 0 ; i < jaettu.length ; i++) {
 			jaettu[i] = 0;
@@ -46,6 +46,8 @@ public class Pokeri implements Behavior{
 
 	@Override
 	public void action() {
+		
+		System.out.println("ALKUKORTIT: " + alkukortitJaettu);
 		SeuraavaPelaaja.kohdalla = false;
 		jaa = false;
 		
@@ -119,7 +121,7 @@ public class Pokeri implements Behavior{
 		
 		// tarkastetaan onko kaikille jaettu 5 korttia
 		for (int g = 0; g < jaettu.length; g++) {
-			if (jaettu[g] == 2){
+			if (jaettu[g] == 5){
 				tarkastus++;
 			}
 		}
